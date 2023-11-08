@@ -14,6 +14,8 @@ import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.hal.SimDouble;
+import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -59,8 +61,8 @@ public class DriveTrain extends SubsystemBase
     leftDriveTalon.setNeutralMode(NeutralMode.Coast); //This makes sure that the leftDriveTalon is set to neutral
     rightDriveTalon.setNeutralMode(NeutralMode.Coast); //This makes sure that the rightDriveTalon is set to neutral
 
-    leftDriveTalon.setInverted(true); //This makes sure the leftDriveTalon is inverted in perspective to the rightDriveTalon so it can drive forward and backward properly
-    rightDriveTalon.setInverted(false); //This makes sure the rightDriveTalon is inverted in perspective to the leftDriveTalon so it can drive forward and backward properly
+    leftDriveTalon.setInverted(false); //This makes sure the leftDriveTalon is inverted in perspective to the rightDriveTalon so it can drive forward and backward properly
+    rightDriveTalon.setInverted(true); //This makes sure the rightDriveTalon is inverted in perspective to the leftDriveTalon so it can drive forward and backward properly
 
     leftDriveTalon.setSensorPhase(true);
     rightDriveTalon.setSensorPhase(true);
@@ -86,8 +88,12 @@ public class DriveTrain extends SubsystemBase
   // l and r position: 0.005 m
   VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005, 0.005));
 
+int x = 4;
+int y = 4;
+
+  m_driveSim.setPose(new Pose2d(x,y, new Rotation2d(0)));
   m_Field = new Field2d();
-  m_Field.setRobotPose(new Pose2d(0,0,new Rotation2d(0)));
+  m_Field.setRobotPose(new Pose2d(x,y,new Rotation2d(0)));
 
 
 
@@ -116,6 +122,9 @@ public class DriveTrain extends SubsystemBase
   public double getMeters(){
     return (Units.inchesToMeters(6)*Math.PI /4096*getTicks());
   }  
+  public double metersToTicks(double positionMeters){
+    return (positionMeters / (0.1524 * Math.PI)*4096);
+  }
   public double getAngle(){ //Gets the robot's current angle
     return -navx.getAngle(); 
   }
@@ -129,17 +138,64 @@ public class DriveTrain extends SubsystemBase
     SmartDashboard.putNumber("Left Voltage", leftDriveTalon.getMotorOutputPercent());
     SmartDashboard.putNumber("Right Voltage", rightDriveTalon.getMotorOutputPercent());
     SmartDashboard.putNumber("Angle", navx.getAngle());
-
-
-
-  }
-  @Override
-  public void simulationPeriodic() {
+    SmartDashboard.putNumber("Ticks", getTicks());
     m_driveSim.setInputs(simLeftVoltage, simRightVoltage);
     m_driveSim.update(0.02);
     m_Field.setRobotPose(m_driveSim.getPose());
     SmartDashboard.putData("Field", m_Field);
-    
+    int dev = SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]");
+    SimDouble angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
+    angle.set(m_driveSim.getHeading().getDegrees());
+    leftDriveTalon.setSelectedSensorPosition(metersToTicks(m_driveSim.getLeftPositionMeters()),0,10);
+    rightDriveTalon.setSelectedSensorPosition(metersToTicks(m_driveSim.getRightPositionMeters()),0,10);
 
+    //Updates the Quadrature for leftDriveSim
+
+    leftDriveSim.setQuadratureRawPosition( 
+        distanceToNativeUnits(
+            -m_driveSim.getLeftPositionMeters())); //Gets the position for the left motor in meters
+    leftDriveSim.setQuadratureVelocity(
+        velocityToNativeUnits(
+            -m_driveSim.getLeftVelocityMetersPerSecond())); //Gets the velocity for the left motor in meters per second
+      
+
+    // Update Quadrature for Right
+    // Have to flip, to match phase of real encoder
+    // Left wheel goes CCW, Right goes CW for forward by default
+
+    rightDriveSim.setQuadratureRawPosition( 
+        distanceToNativeUnits(
+            m_driveSim.getRightPositionMeters())); //Gets the position for the right motor in meters
+    rightDriveSim.setQuadratureVelocity(
+        velocityToNativeUnits(
+            m_driveSim.getRightVelocityMetersPerSecond())); //Gets the velocity for the right motor in meters per second
+
+
+  }
+  @Override
+  public void simulationPeriodic() { 
+
+
+
+  }
+  //
+  private int distanceToNativeUnits(double positionMeters) {
+    double wheelRotations = positionMeters
+        / (Math.PI * Units.inchesToMeters(Constants.DriveTrainPorts.wheelDiameterInches)); //Converts how many inches the motor rotated to meters
+    double motorRotations = wheelRotations * 1.0; //Sets double motorRotations equal to double wheelRotations
+    int sensorCounts = (int) (motorRotations * 4096.0); //Sets int sensorCounts equal to motorRotations * 4096.0, and then changed into an int
+    return sensorCounts; //returns the value of the variable sensorCounts
+  }
+
+  private int velocityToNativeUnits(double velocityMetersPerSecond) {
+    // Previous mistake: multiply this by 2
+    // Consequences: had to set the constant to 0.5 less
+    // Now it works without the 2
+    double wheelRotationsPerSecond = velocityMetersPerSecond
+        / (Math.PI * Units.inchesToMeters(Constants.DriveTrainPorts.wheelDiameterInches));
+    double motorRotationsPerSecond = wheelRotationsPerSecond * 1.0;
+    double motorRotationsPer100ms = motorRotationsPerSecond / 10.0;
+    int sensorCountsPer100ms = (int) (motorRotationsPer100ms * 4096.0);
+    return sensorCountsPer100ms;
   }
 }

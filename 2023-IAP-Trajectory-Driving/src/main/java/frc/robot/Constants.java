@@ -24,8 +24,11 @@ public final class Constants {
         public static final int One = 1;
         public static final double leftPowerRaw = 0.3;
         public static final double rightPowerRaw = 0.3;
-        public static final double setTolerance = 5.0;
         public static final int getMeters = 6;
+        public static final double setTolerance = 5.0;
+        public static final double ki = 0.005;
+        public static final double kp = 0.3/90;
+        public static final int setPointAngle = 90;
     
     public static class SimConstants {
         public static final double kS = 0.22;
