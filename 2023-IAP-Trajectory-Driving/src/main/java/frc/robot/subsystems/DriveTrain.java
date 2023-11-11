@@ -25,6 +25,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
@@ -32,6 +33,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 
 public class DriveTrain extends SubsystemBase 
 {
@@ -39,6 +41,7 @@ public class DriveTrain extends SubsystemBase
   private final WPI_TalonSRX rightDriveTalon;
   private final TalonSRXSimCollection leftDriveSim;
   private final TalonSRXSimCollection rightDriveSim;
+  private final DifferentialDriveOdometry odometry;
 
   private AHRS navx = new AHRS(SPI.Port.kMXP); //This is creating a new object within the AHRS class called navx
 
@@ -98,6 +101,7 @@ int y = 4;
 
 
   drive = new DifferentialDrive(rightDriveTalon, leftDriveTalon);
+  odometry = new DifferentialDriveOdometry(navx.getRotation2d(), getLeftDistance(), getRightDistance());
 
   }
 
@@ -132,13 +136,39 @@ int y = 4;
   public void resetNavx(){
     navx.reset();
   }
+/**
+   * Returns displacement of left side of chassis.
+   * 
+   * @return the displacement in meters (m)
+   */
+  public double getLeftDistance() {
+    return leftDriveTalon.getSelectedSensorPosition() / Constants.DriveToLineConstants.ticksToMeters;
+  }
 
+  /**
+   * Returns displacement of right side of chassis.
+   * 
+   * @return the displacement in meters (m)
+   */
+  public double getRightDistance() {
+
+    return rightDriveTalon.getSelectedSensorPosition() / Constants.DriveToLineConstants.ticksToMeters;
+  }
+  public double getLeftSpeed() {
+    return (leftDriveTalon.getSelectedSensorVelocity() * 10.0) / Constants.DriveToLineConstants.ticksToMeters;
+  }
+  public double getRightSpeed() {
+    return (leftDriveTalon.getSelectedSensorVelocity() * 10.0) / Constants.DriveToLineConstants.ticksToMeters;
+  }
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Left Voltage", leftDriveTalon.getMotorOutputPercent());
     SmartDashboard.putNumber("Right Voltage", rightDriveTalon.getMotorOutputPercent());
     SmartDashboard.putNumber("Angle", navx.getAngle());
     SmartDashboard.putNumber("Ticks", getTicks());
+  }
+  @Override
+  public void simulationPeriodic() { 
     m_driveSim.setInputs(simLeftVoltage, simRightVoltage);
     m_driveSim.update(0.02);
     m_Field.setRobotPose(m_driveSim.getPose());
@@ -169,19 +199,36 @@ int y = 4;
     rightDriveSim.setQuadratureVelocity(
         velocityToNativeUnits(
             m_driveSim.getRightVelocityMetersPerSecond())); //Gets the velocity for the right motor in meters per second
+    
+  
 
+    SmartDashboard.putNumber("Heading", m_driveSim.getHeading().getDegrees());
+
+    SmartDashboard.putNumber("LeftPosition", getLeftDistance());
+    SmartDashboard.putNumber("RightPosition", getRightDistance());
+    SmartDashboard.putNumber("LeftVel", getLeftSpeed());
+    SmartDashboard.putNumber("RightVel", getRightSpeed());
+
+    // Turn rate returns 0 in sim, same in real life?
+    // Turn rate is never used
+    SmartDashboard.putNumber("TurnRate", getTurnRate());
+    SmartDashboard.putNumber("SimAng", angle.get());
+    if (Robot.isSimulation()) {
+      odometry.update(navx.getRotation2d().unaryMinus(), getLeftDistance(), getRightDistance());
+    }
 
   }
-  @Override
-  public void simulationPeriodic() { 
-
-
-
+  public Pose2d getPose() {
+    return odometry.getPoseMeters();
   }
+
+
+
+
   //
   private int distanceToNativeUnits(double positionMeters) {
     double wheelRotations = positionMeters
-        / (Math.PI * Units.inchesToMeters(Constants.DriveTrainPorts.wheelDiameterInches)); //Converts how many inches the motor rotated to meters
+        / (Math.PI * Units.inchesToMeters(Constants.DriveToLineConstants.wheelDiameterInInches)); //Converts how many inches the motor rotated to meters
     double motorRotations = wheelRotations * 1.0; //Sets double motorRotations equal to double wheelRotations
     int sensorCounts = (int) (motorRotations * 4096.0); //Sets int sensorCounts equal to motorRotations * 4096.0, and then changed into an int
     return sensorCounts; //returns the value of the variable sensorCounts
@@ -192,10 +239,23 @@ int y = 4;
     // Consequences: had to set the constant to 0.5 less
     // Now it works without the 2
     double wheelRotationsPerSecond = velocityMetersPerSecond
-        / (Math.PI * Units.inchesToMeters(Constants.DriveTrainPorts.wheelDiameterInches));
+        / (Math.PI * Units.inchesToMeters(Constants.DriveToLineConstants.wheelDiameterInInches));
     double motorRotationsPerSecond = wheelRotationsPerSecond * 1.0;
     double motorRotationsPer100ms = motorRotationsPerSecond / 10.0;
     int sensorCountsPer100ms = (int) (motorRotationsPer100ms * 4096.0);
     return sensorCountsPer100ms;
   }
+  private double nativeUnitsToDistanceMeters(double sensorCounts) {
+    double motorRotations = (double) sensorCounts / 4096.0;
+    double wheelRotations = motorRotations / 1.0;
+    double positionMeters = wheelRotations * (2 * Math.PI * Units.inchesToMeters(6.0));
+    return positionMeters;
 }
+public double getAverageEncoderDistance() {
+    return (getLeftDistance() + getRightDistance()) / 2.0;
+  }
+  public double getTurnRate() {
+    return -navx.getRate();
+  }
+}
+
