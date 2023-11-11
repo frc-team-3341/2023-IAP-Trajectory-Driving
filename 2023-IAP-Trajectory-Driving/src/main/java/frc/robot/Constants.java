@@ -22,6 +22,7 @@ public final class Constants {
         public static final double ticksToMeters = (1.0 / (wheelDiameterInInches * 0.0254 * Math.PI)) * 4096.0;
     }
 
+
     public static final class USBOrder {
         public static final int Zero = 0;
         public static final int One = 1;
@@ -32,7 +33,7 @@ public final class Constants {
         public static final double ki = 0.005;
         public static final double kp = 0.3/90;
         public static final int setPointAngle = 90;
-    
+    }
     public static class SimConstants {
         public static final double kS = 0.22;
         public static final double kV = 2.98;
@@ -44,4 +45,4 @@ public final class Constants {
         public static final double kTrackwidthMeters = 0.7112;
     }
     }
-}
+

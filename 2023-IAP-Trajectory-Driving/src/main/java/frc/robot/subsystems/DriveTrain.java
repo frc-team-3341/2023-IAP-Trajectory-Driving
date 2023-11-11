@@ -20,6 +20,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
 
 import edu.wpi.first.networktables.GenericEntry;
@@ -77,12 +78,13 @@ public class DriveTrain extends SubsystemBase
 
     // Create the simulation model of our drivetrain.
  m_driveSim = new DifferentialDrivetrainSim(
-  DCMotor.getNEO(2),       // 2 NEO motors on each side of the drivetrain.
-  7.29,                    // 7.29:1 gearing reduction.
-  7.5,                     // MOI of 7.5 kg m^2 (from CAD model).
-  60.0,                    // The mass of the robot is 60 kg.
-  Units.inchesToMeters(3), // The robot uses 3" radius wheels.
-  0.7112,                  // The track width is 0.7112 meters.
+  LinearSystemId.identifyDrivetrainSystem(Constants.SimConstants.kV,
+      Constants.SimConstants.kA, Constants.SimConstants.kVangular,
+      Constants.SimConstants.kAangular),
+      DCMotor.getCIM(1), // 1 CIM motor on each side of the drivetrain.
+      10.71, // 10.71:1 gearing reduction.
+      Constants.SimConstants.kTrackwidthMeters, // The track width is 0.7112
+      Units.inchesToMeters(3), // The robot uses 3" radius wheels.
 
   // The standard deviations for measurement noise:
   // x and y:          0.001 m
@@ -115,8 +117,8 @@ int y = 4;
   }
 
   public void resetEncoders() {
-    leftDriveTalon.setSelectedSensorPosition(0,0,10); //Sets the sensor position of the leftDriveTalon to 0, 0, 10
-    rightDriveTalon.setSelectedSensorPosition(0,0,10); //Sets the sensor position of the rightDriveTalon to 0, 0, 10
+    leftDriveTalon.setSelectedSensorPosition(0); //Sets the sensor position of the leftDriveTalon to 0, 0, 10
+    rightDriveTalon.setSelectedSensorPosition(0); //Sets the sensor position of the rightDriveTalon to 0, 0, 10
   }
 
   public double getTicks() {
@@ -173,9 +175,6 @@ int y = 4;
     m_driveSim.update(0.02);
     m_Field.setRobotPose(m_driveSim.getPose());
     SmartDashboard.putData("Field", m_Field);
-    int dev = SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]");
-    SimDouble angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
-    angle.set(m_driveSim.getHeading().getDegrees());
     leftDriveTalon.setSelectedSensorPosition(metersToTicks(m_driveSim.getLeftPositionMeters()),0,10);
     rightDriveTalon.setSelectedSensorPosition(metersToTicks(m_driveSim.getRightPositionMeters()),0,10);
 
@@ -199,7 +198,12 @@ int y = 4;
     rightDriveSim.setQuadratureVelocity(
         velocityToNativeUnits(
             m_driveSim.getRightVelocityMetersPerSecond())); //Gets the velocity for the right motor in meters per second
-    
+  
+    //Updates Gyro
+  
+    int dev = SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]");
+    SimDouble angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
+    angle.set(m_driveSim.getHeading().getDegrees());
   
 
     SmartDashboard.putNumber("Heading", m_driveSim.getHeading().getDegrees());
@@ -220,6 +224,11 @@ int y = 4;
   }
   public Pose2d getPose() {
     return odometry.getPoseMeters();
+  }
+  public void resetOdometry(Pose2d pose) {
+    resetEncoders();
+    odometry.resetPosition(
+      navx.getRotation2d(), getLeftDistance(), getRightDistance(), pose);
   }
 
 

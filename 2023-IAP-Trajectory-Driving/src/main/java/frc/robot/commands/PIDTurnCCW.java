@@ -21,7 +21,7 @@ public class PIDTurnCCW extends CommandBase {
     this.setPointAngle = setPointAngle; //Sets setPointAngle = to setPointAngle
     addRequirements(dt);
     pid.setTolerance(5.0); //Tells the robot how much it can overshoot or undershoot by
-    if(setPointAngle > 0 ) { //Counterclockwise turn
+    if(setPointAngle >= 0 ) { //Counterclockwise turn
       motorSign = 1;
     }
     else {

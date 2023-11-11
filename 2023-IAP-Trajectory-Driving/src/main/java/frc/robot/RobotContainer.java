@@ -29,7 +29,8 @@ public class RobotContainer {
   private void configureBindings() {}
 
   public Command getAutonomousCommand() {
-    return new SequentialCommandGroup(
+    return new SequentialCommandGroup( /*
+     
       new EncoderDrive(dt, 0.5),
       new PIDTurnCCW(dt, 90),
       new EncoderDrive(dt, 0.5),
@@ -37,6 +38,8 @@ public class RobotContainer {
       new EncoderDrive(dt, 0.5),
       new PIDTurnCCW(dt, 90),
       new EncoderDrive(dt, 0.5)
+      */
+      new PIDTurnCCW(dt, 90)
     );
   }
 }
