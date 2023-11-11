@@ -31,12 +31,12 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     return new SequentialCommandGroup(
       new EncoderDrive(dt, 0.5),
-      new PIDTurnCCW(dt, 55),
-      new EncoderDrive(dt, 1.5),
-      new PIDTurnCCW(dt, 55),
-      new EncoderDrive(dt, 2.5),
-      new PIDTurnCCW(dt, 55),
-      new EncoderDrive(dt, 3.5)
+      new PIDTurnCCW(dt, 90),
+      new EncoderDrive(dt, 0.5),
+      new PIDTurnCCW(dt, 90),
+      new EncoderDrive(dt, 0.5),
+      new PIDTurnCCW(dt, 90),
+      new EncoderDrive(dt, 0.5)
     );
   }
 }

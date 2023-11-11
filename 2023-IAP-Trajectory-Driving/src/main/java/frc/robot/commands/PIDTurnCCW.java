@@ -43,7 +43,7 @@ public class PIDTurnCCW extends CommandBase {
   @Override
   public void execute() {
     double output = pid.calculate(dt.getAngle(), setPointAngle); //Gets the current angle and calculates how far off it is from the final angle
-    dt.tankDrive(output*motorSign, -output*motorSign);
+    dt.tankDrive(-output*motorSign, output*motorSign);
   }
 
   // Called once the command ends or is interrupted.
