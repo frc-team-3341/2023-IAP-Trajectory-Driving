@@ -39,7 +39,10 @@ public class RobotContainer {
       new PIDTurnCCW(dt, 90),
       new EncoderDrive(dt, 0.5)
       */
-      new PIDTurnCCW(dt, 90)
+      new PIDTurnCCW(dt, 90),
+      new EncoderDrive(dt, 0.5),
+      new PIDTurnCCW(dt, 90),
+      new EncoderDrive(dt, 0.5)
     );
   }
 }
