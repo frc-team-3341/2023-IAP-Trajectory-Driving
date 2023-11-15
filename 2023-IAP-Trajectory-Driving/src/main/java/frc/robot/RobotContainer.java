@@ -23,10 +23,11 @@ public class RobotContainer {
   public RobotContainer() {
     dt.setDefaultCommand(new TankDrive(dt, j));
     configureBindings();
-  }
+   }
 
 
-  private void configureBindings() {}
+
+  private void configureBindings() {} 
 
   public Command getAutonomousCommand() {
     return new SequentialCommandGroup( /*
@@ -39,10 +40,14 @@ public class RobotContainer {
       new PIDTurnCCW(dt, 90),
       new EncoderDrive(dt, 0.5)
       */
-      new PIDTurnCCW(dt, 90),
-      new EncoderDrive(dt, 0.5),
-      new PIDTurnCCW(dt, 90),
-      new EncoderDrive(dt, 0.5)
+     
+      new EncoderDrive(dt, 1),
+      new EncoderDrive(dt, 1)
+      
+      
+      
+
+
     );
   }
 }

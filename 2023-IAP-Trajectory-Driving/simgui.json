@@ -1,4 +1,27 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "Talon SRX[3]/Rev Limit": {
+        "header": {
+          "open": true
+        }
+      },
+      "window": {
+        "visible": false
+      }
+    },
+    "RoboRIO": {
+      "5V Rail": {
+        "open": true
+      },
+      "6V Rail": {
+        "open": true
+      },
+      "RoboRIO Input": {
+        "open": true
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
@@ -18,10 +41,10 @@
     }
   },
   "NetworkTables": {
-    "Transitory Values": {
-      "open": false
-    },
     "transitory": {
+      "Shuffleboard": {
+        "open": true
+      },
       "SmartDashboard": {
         "open": true
       }

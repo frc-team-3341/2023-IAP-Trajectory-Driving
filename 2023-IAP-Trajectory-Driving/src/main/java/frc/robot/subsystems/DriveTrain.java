@@ -263,6 +263,7 @@ int y = 4;
 public double getAverageEncoderDistance() {
     return (getLeftDistance() + getRightDistance()) / 2.0;
   }
+
   public double getTurnRate() {
     return -navx.getRate();
   }
