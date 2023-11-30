@@ -15,39 +15,34 @@ import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.EncoderDrive;
 import frc.robot.commands.PIDTurnCCW;
+import frc.robot.commands.Ramsete;
 
 
 public class RobotContainer {
-  DriveTrain dt = new DriveTrain();
-  Joystick j = new Joystick(0);
+  public static DriveTrain dt = new DriveTrain();
+  public PIDTurnCCW pid = new PIDTurnCCW(dt, 90, false);
+  public static Joystick j = new Joystick(0);
+  public Ramsete ramsete = new Ramsete();
   public RobotContainer() {
     dt.setDefaultCommand(new TankDrive(dt, j));
     configureBindings();
    }
+  
+
 
 
 
   private void configureBindings() {} 
 
   public Command getAutonomousCommand() {
-    return new SequentialCommandGroup( /*
+    return ramsete;
      
-      new EncoderDrive(dt, 0.5),
-      new PIDTurnCCW(dt, 90),
-      new EncoderDrive(dt, 0.5),
-      new PIDTurnCCW(dt, 90),
-      new EncoderDrive(dt, 0.5),
-      new PIDTurnCCW(dt, 90),
-      new EncoderDrive(dt, 0.5)
-      */
-     
-      new EncoderDrive(dt, 1),
-      new EncoderDrive(dt, 1)
+      
       
       
       
 
 
-    );
+    
   }
 }

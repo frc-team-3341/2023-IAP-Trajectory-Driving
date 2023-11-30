@@ -27,6 +27,7 @@ import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
@@ -119,6 +120,7 @@ int y = 4;
   public void resetEncoders() {
     leftDriveTalon.setSelectedSensorPosition(0); //Sets the sensor position of the leftDriveTalon to 0, 0, 10
     rightDriveTalon.setSelectedSensorPosition(0); //Sets the sensor position of the rightDriveTalon to 0, 0, 10
+    
   }
 
   public double getTicks() {
@@ -229,8 +231,29 @@ int y = 4;
     resetEncoders();
     odometry.resetPosition(
       navx.getRotation2d(), getLeftDistance(), getRightDistance(), pose);
+    m_driveSim.setPose(pose);
+    m_Field.setRobotPose(pose);
+  }
+  public void zeroHeading() {
+    navx.reset();
   }
 
+  public void setMaxOutput(double maxOutput) {
+    drive.setMaxOutput(maxOutput);
+  }
+
+  /**
+   * Returns the heading of the robot.
+   *
+   * @return the robot's heading in degrees, from -180 to 180
+   */
+  public double getHeading() {
+    return -navx.getRotation2d().getDegrees();
+  }
+      
+  public Field2d getField2d() {
+    return m_Field;
+  }
 
 
 
@@ -267,5 +290,7 @@ public double getAverageEncoderDistance() {
   public double getTurnRate() {
     return -navx.getRate();
   }
+public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+    return new DifferentialDriveWheelSpeeds(getLeftSpeed(), getRightSpeed());
 }
-
+}
