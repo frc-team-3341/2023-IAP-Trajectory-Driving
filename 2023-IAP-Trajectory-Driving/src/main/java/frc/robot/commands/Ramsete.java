@@ -69,7 +69,7 @@ public class Ramsete extends SequentialCommandGroup {
     new PIDController(Constants.SimConstants.kPVel, 0, 0),
     new PIDController(Constants.SimConstants.kPVel, 0, 0),
     // RamseteCommand passes volts to the callback
-    RobotContainer.dt::tankDrive,
+    RobotContainer.dt::tankDriveVoltage,
     RobotContainer.dt);
 
     RobotContainer.dt.getField2d().getObject("traj").setTrajectory(trajectory);

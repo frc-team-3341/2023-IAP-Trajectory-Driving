@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.Constants.DriveToLineConstants;
 
 public class DriveTrain extends SubsystemBase 
 {
@@ -117,6 +118,15 @@ int y = 4;
     
   }
 
+  public void tankDriveVoltage(double leftSpeed, double rightSpeed) {  //This will drive the robot with a certain speed
+    rightDriveTalon.setVoltage(rightSpeed); 
+    leftDriveTalon.setVoltage(leftSpeed);
+    simLeftVoltage = leftSpeed;
+    simRightVoltage = rightSpeed;
+    drive.feed();
+    
+  }
+
   public void resetEncoders() {
     leftDriveTalon.setSelectedSensorPosition(0); //Sets the sensor position of the leftDriveTalon to 0, 0, 10
     rightDriveTalon.setSelectedSensorPosition(0); //Sets the sensor position of the rightDriveTalon to 0, 0, 10
@@ -170,6 +180,10 @@ int y = 4;
     SmartDashboard.putNumber("Right Voltage", rightDriveTalon.getMotorOutputPercent());
     SmartDashboard.putNumber("Angle", navx.getAngle());
     SmartDashboard.putNumber("Ticks", getTicks());
+    SmartDashboard.putData("Field", m_Field);
+    SmartDashboard.putNumber("Robot Left Velocity", getLeftVelocityMetersPerSecond());
+    SmartDashboard.putNumber("Robot Left Velocity", getRightVelocityMetersPerSecond());
+    m_Field.setRobotPose(m_driveSim.getPose());
   }
   @Override
   public void simulationPeriodic() { 
@@ -292,5 +306,11 @@ public double getAverageEncoderDistance() {
   }
 public DifferentialDriveWheelSpeeds getWheelSpeeds() {
     return new DifferentialDriveWheelSpeeds(getLeftSpeed(), getRightSpeed());
+}
+public double getLeftVelocityMetersPerSecond() {
+  return leftDriveTalon.getSelectedSensorVelocity()*10/DriveToLineConstants.ticksToMeters;
+}
+public double getRightVelocityMetersPerSecond() {
+  return rightDriveTalon.getSelectedSensorVelocity()*10/DriveToLineConstants.ticksToMeters;
 }
 }

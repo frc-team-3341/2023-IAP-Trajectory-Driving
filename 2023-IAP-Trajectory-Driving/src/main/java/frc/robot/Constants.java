@@ -16,8 +16,8 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
  */
 public final class Constants {
     public static final class DriveTrainPorts {
-        public static final int LeftDriveTalonPort = 1; 
-        public static final int RightDriveTalonPort = 2;
+        public static final int LeftDriveTalonPort = 2; 
+        public static final int RightDriveTalonPort = 3;
         public static final int LeftDriveVictorPort = 4;
         public static final int RightDriveVictorPort = 5;
         public static final int wheelDiameterInInches = 6;
@@ -52,7 +52,7 @@ public final class Constants {
         public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(
                 kTrackwidthMeters);
         public static final double kMaxSpeed = 0.3; // In meters per second
-        public static final double kMaxAcceleration = 2; // 3 In meters per second per second
+        public static final double kMaxAcceleration = 0.5; // 3 In meters per second per second
         public static final double kRamseteB = 2.0;
         public static final double kRamseteZeta = 0.7;
         public static final double kPVel = 0.062231;
