@@ -51,11 +51,19 @@
     }
   },
   "NetworkTables Info": {
-    "Clients": {
+    "Connections": {
       "open": true
     },
     "Server": {
       "open": true
+    },
+    "visible": true
+  },
+  "Plot": {
+    "Plot <0>": {
+      "window": {
+        "visible": false
+      }
     }
   }
 }

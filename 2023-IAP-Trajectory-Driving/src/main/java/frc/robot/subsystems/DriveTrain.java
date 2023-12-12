@@ -184,6 +184,53 @@ int y = 4;
     SmartDashboard.putNumber("Robot Left Velocity", getLeftVelocityMetersPerSecond());
     SmartDashboard.putNumber("Robot Left Velocity", getRightVelocityMetersPerSecond());
     m_Field.setRobotPose(m_driveSim.getPose());
+    m_driveSim.setInputs(simLeftVoltage, simRightVoltage);
+    m_driveSim.update(0.02);
+    leftDriveTalon.setSelectedSensorPosition(metersToTicks(m_driveSim.getLeftPositionMeters()),0,10);
+    rightDriveTalon.setSelectedSensorPosition(metersToTicks(m_driveSim.getRightPositionMeters()),0,10);
+
+    //Updates the Quadrature for leftDriveSim
+
+    leftDriveSim.setQuadratureRawPosition( 
+        distanceToNativeUnits(
+            -m_driveSim.getLeftPositionMeters())); //Gets the position for the left motor in meters
+    leftDriveSim.setQuadratureVelocity(
+        velocityToNativeUnits(
+            -m_driveSim.getLeftVelocityMetersPerSecond())); //Gets the velocity for the left motor in meters per second
+      
+
+    // Update Quadrature for Right
+    // Have to flip, to match phase of real encoder
+    // Left wheel goes CCW, Right goes CW for forward by default
+
+    rightDriveSim.setQuadratureRawPosition( 
+        distanceToNativeUnits(
+            m_driveSim.getRightPositionMeters())); //Gets the position for the right motor in meters
+    rightDriveSim.setQuadratureVelocity(
+        velocityToNativeUnits(
+            m_driveSim.getRightVelocityMetersPerSecond())); //Gets the velocity for the right motor in meters per second
+  
+    //Updates Gyro
+  
+    int dev = SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]");
+    SimDouble angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
+    angle.set(m_driveSim.getHeading().getDegrees());
+  
+
+    SmartDashboard.putNumber("Heading", m_driveSim.getHeading().getDegrees());
+
+    SmartDashboard.putNumber("LeftPosition", getLeftDistance());
+    SmartDashboard.putNumber("RightPosition", getRightDistance());
+    SmartDashboard.putNumber("LeftVel", getLeftSpeed());
+    SmartDashboard.putNumber("RightVel", getRightSpeed());
+
+    // Turn rate returns 0 in sim, same in real life?
+    // Turn rate is never used
+    SmartDashboard.putNumber("TurnRate", getTurnRate());
+    SmartDashboard.putNumber("SimAng", angle.get());
+    if (Robot.isSimulation()) {
+      odometry.update(navx.getRotation2d().unaryMinus(), getLeftDistance(), getRightDistance());
+    }
   }
   @Override
   public void simulationPeriodic() { 
